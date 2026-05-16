@@ -157,3 +157,30 @@ class WaferModel:
             _call,
             (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
         )
+
+
+class GrokModel:
+    """Uses xAI API (OpenAI compatible)."""
+    
+    provider = "xai"
+
+    def __init__(self, model_name: str = "grok-beta") -> None:
+        self.model_name = model_name
+        self.client = openai.AsyncOpenAI(
+            api_key=os.environ.get("GROK_API_KEY"),
+            base_url="https://api.x.ai/v1"
+        )
+
+    async def complete(self, messages: list[dict], max_tokens: int) -> str:
+        async def _call():
+            response = await self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                max_tokens=max_tokens,
+            )
+            return response.choices[0].message.content
+
+        return await _with_backoff(
+            _call,
+            (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
+        )

@@ -19,7 +19,7 @@ import asyncio
 from pathlib import Path
 
 from slowburn.fillers.coding import generate_coding_filler  # swap to fillers.qa for QA filler
-from slowburn.models import ClaudeModel, GeminiModel, OpenAIModel
+from slowburn.models import ClaudeModel, GeminiModel, OpenAIModel, GrokModel
 from slowburn.probes import ALL_PROBES
 from slowburn.runner import run_matrix
 
@@ -39,6 +39,7 @@ async def main(args) -> None:
         ClaudeModel("claude-sonnet-4-6"),
         OpenAIModel("gpt-4o"), # Adjusted to a real model name
         GeminiModel("gemini-2.5-pro"),
+        GrokModel("grok-beta"),
     ]
     
     depths = [int(d) for d in args.depths.split(",")]

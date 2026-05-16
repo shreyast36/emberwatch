@@ -7,7 +7,7 @@
 ```bash
 uv sync
 cp .env.example .env
-# fill in ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, WAFER_API_KEY
+# fill in ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, WAFER_API_KEY, GROK_API_KEY
 ```
 
 ## Usage
