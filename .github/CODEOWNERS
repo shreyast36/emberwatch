@@ -1,0 +1,22 @@
+# CODEOWNERS — auto-assigns reviewers based on changed paths.
+# Last matching rule wins. See ROLES.md for the why.
+
+# Default: Shreyas reviews anything not otherwise claimed
+*                                   @shreyast36
+
+# Dhanush — probes, baseline, probe tests
+/src/slowburn/probes/               @TODO-dhanush
+/src/slowburn/baseline.py           @TODO-dhanush
+/scripts/validate_baseline.py       @TODO-dhanush
+/tests/test_probes.py               @TODO-dhanush
+
+# Binjie — model adapters and filler generators
+/src/slowburn/models.py             @TODO-binjie
+/src/slowburn/fillers/              @TODO-binjie
+
+# Shreyas — runner, judge, analysis, results scripts
+/src/slowburn/runner.py             @shreyast36
+/src/slowburn/judge.py              @shreyast36
+/src/slowburn/analysis.py           @shreyast36
+/scripts/run_matrix.py              @shreyast36
+/scripts/plot_results.py            @shreyast36
