@@ -46,7 +46,7 @@ RESULTS_DIR = ROOT / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
 MODEL_DEFAULTS: dict[str, tuple[str, type]] = {
-    "claude": ("claude-sonnet-4-7", ClaudeModel),
+    "claude": ("claude-sonnet-4-6", ClaudeModel),
     "openai": ("gpt-4o", OpenAIModel),
     "gemini": ("gemini-2.5-pro", GeminiModel),
     "wafer": ("glm-4", WaferModel),
