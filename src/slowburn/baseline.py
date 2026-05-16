@@ -8,48 +8,14 @@ defensibility check: if depth-0 isn't stable, we can't claim variance at
 higher depths is context-induced.
 """
 
-import asyncio
+import json
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
-from slowburn.judge import judge
 from slowburn.models import Model
 from slowburn.probes.base import Probe, ProbeResult
-
-
-MAX_RESPONSE_TOKENS = 1024
-
-
-def _model_name(model: Model) -> str:
-    return getattr(model, "model_name", model.__class__.__name__)
-
-
-async def _run_trial(model: Model, probe: Probe, trial: int) -> ProbeResult:
-    model_name = _model_name(model)
-
-    try:
-        messages = [dict(message) for message in probe.messages]
-        response = await model.complete(messages, max_tokens=MAX_RESPONSE_TOKENS)
-        verdict = await judge(probe, response)
-        return ProbeResult(
-            probe_name=probe.name,
-            model_name=model_name,
-            depth=0,
-            trial=trial,
-            response=response,
-            verdict=verdict.verdict,
-            reasoning=verdict.reasoning,
-        )
-    except Exception as exc:
-        return ProbeResult(
-            probe_name=probe.name,
-            model_name=model_name,
-            depth=0,
-            trial=trial,
-            response="",
-            verdict="error",
-            reasoning=f"{exc.__class__.__name__}: {exc}",
-        )
+from slowburn.runner import run_matrix
 
 
 def _summarize_results(
@@ -96,13 +62,34 @@ async def validate_baseline(
     if not 0 < consistency_threshold <= 1:
         raise ValueError("consistency_threshold must be in the range (0, 1]")
 
-    tasks = [
-        _run_trial(model, probe, trial)
-        for model in models
-        for probe in probes
-        for trial in range(trials)
-    ]
-    results = await asyncio.gather(*tasks)
+    # 1. Call into the runner Shreyas wrote
+    baseline_path = Path("results/baseline.jsonl")
+    
+    def empty_filler(target_tokens: int, seed: int) -> list[dict]:
+        return []
+
+    await run_matrix(
+        models=models,
+        probes=probes,
+        depths=[0],
+        trials_per_cell=trials,
+        filler_strategy=empty_filler,
+        output_path=baseline_path,
+    )
+
+    # 2. Read the JSONL it writes
+    results = []
+    if baseline_path.exists():
+        with baseline_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                    if int(row.get("depth", -1)) == 0:
+                        results.append(ProbeResult(**row))
+                except Exception:
+                    continue
 
     return _summarize_results(results, consistency_threshold)
-
