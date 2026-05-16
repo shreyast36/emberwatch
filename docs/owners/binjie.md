@@ -1,6 +1,6 @@
 # Owner guide — Binjie
 
-**Components:** model adapters (Claude / GPT / Gemini), fillers (coding / Q&A).
+**Components:** model adapters (Claude / GPT / Gemini / Wafer), fillers (coding / Q&A).
 
 You own two things that look unrelated but share a property: if they're wrong, the experiment silently produces garbage. A model adapter that drops the system message will invalidate the instruction-hierarchy probe. A filler that contains the word "I cannot" will contaminate the refusal probe at depth >0. There's no obvious failure mode — the matrix will run, the plots will look plausible, and the results will be meaningless. Treat correctness here as load-bearing.
 
@@ -20,7 +20,7 @@ Before writing any adapter code, agree with Shreyas on the exact shape. Suggeste
 ```python
 class Model(Protocol):
     model_name: str
-    provider: str  # "anthropic" | "openai" | "google" — Shreyas needs this for per-provider semaphores
+    provider: str  # "anthropic" | "openai" | "google" | "wafer" — Shreyas needs this for per-provider semaphores
 
     async def complete(self, messages: list[dict], max_tokens: int) -> str: ...
 ```
