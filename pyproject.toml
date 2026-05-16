@@ -14,6 +14,11 @@ dependencies = [
     "python-dotenv>=1.0",
     "matplotlib>=3.8",
     "pandas>=2.0",
+    # UI
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "streamlit>=1.40.0",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
