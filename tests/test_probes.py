@@ -21,8 +21,5 @@ def test_registry_matches_list():
 
 def test_every_probe_has_rubric():
     for p in ALL_PROBES:
-        assert hasattr(p, "rubric") and p.rubric is not None, f"{p.name} lacks rubric attribute"
-        assert str(p.rubric).strip(), f"{p.name} has an empty rubric string"
-        
-        assert hasattr(p, "messages") and p.messages is not None, f"{p.name} lacks messages attribute"
-        assert len(p.messages) > 0, f"{p.name} has empty messages list"
+        assert p.rubric.strip(), f"{p.name} missing rubric"
+        assert p.messages, f"{p.name} missing messages"
