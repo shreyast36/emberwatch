@@ -13,9 +13,16 @@ from pydantic import BaseModel
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
+import os
+
 from dotenv import load_dotenv
 
-load_dotenv(ROOT / ".env")
+load_dotenv(ROOT / ".env", override=True)
+
+# Strip whitespace from API keys — .env files sometimes have `KEY= value` with a leading space
+for _key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "WAFER_API_KEY"):
+    if _key in os.environ:
+        os.environ[_key] = os.environ[_key].strip()
 
 from slowburn.analysis import aggregate
 from slowburn.baseline import validate_baseline
