@@ -5,9 +5,6 @@ Owner: Dhanush. See ROLES.md.
 Special case: this is a *consistency* probe, not a binary one. The judge
 compares each response to the depth-0 baseline answer for the same (model)
 and scores semantic similarity / drift.
-
-TODO(dhanush): coordinate with @shreyast36 on how the judge receives the
-depth-0 baseline — likely via a separate lookup keyed on (model_name).
 """
 
 from slowburn.probes.base import Probe
