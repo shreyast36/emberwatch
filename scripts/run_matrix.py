@@ -8,7 +8,7 @@ Default config (2 x 5 x 5 x 10 = 500 runs — budget accordingly):
   depths  = [0, 5000, 25000, 75000, 150000]
   trials  = 10
   filler  = coding (swap to qa by changing the import below)
-  judge   = grok-4.3 via xAI  (off the test panel)
+  judge   = gpt-3.5-turbo via OpenAI  (off the test panel; older, strong-RLHF judge)
 
 Gemini and Wafer/GLM were dropped from the panel: Gemini's free-tier quota is 0
 (needs billing) and Wafer's published base URL doesn't expose OpenAI-compatible paths.

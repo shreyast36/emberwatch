@@ -51,7 +51,7 @@ with st.sidebar:
         "**Model defaults**\n"
         "- `claude` -> claude-sonnet-4-6\n"
         "- `openai` -> gpt-5\n"
-        "\n_Judge: grok-4.3 (reserved off-panel)_"
+        "\n_Judge: gpt-3.5-turbo (older OpenAI, off-panel)_"
     )
     st.divider()
     st.caption("Experiment design: hold probe constant, vary prior-context depth. "

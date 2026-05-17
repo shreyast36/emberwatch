@@ -78,8 +78,9 @@ def build_models(model_names: str):
 
 def validate_required_env(model_names: str) -> None:
     requested = {name.strip().lower() for name in model_names.split(",") if name.strip()}
-    # GROK_API_KEY is always required: it's the judge.
-    required = {"ANTHROPIC_API_KEY", "GROK_API_KEY"}
+    # OPENAI_API_KEY is always required: it powers the gpt-3.5-turbo judge
+    # (and is also needed if the openai panel slot is selected).
+    required = {"ANTHROPIC_API_KEY", "OPENAI_API_KEY"}
 
     if "openai" in requested:
         required.add("OPENAI_API_KEY")

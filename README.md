@@ -24,8 +24,10 @@ The headline finding the matrix is designed to produce: **a per-model fragility 
 ```bash
 uv sync
 cp .env.example .env
-# fill in ANTHROPIC_API_KEY, OPENAI_API_KEY, GROK_API_KEY
-# (GROK_API_KEY is required: grok-4.3 is the judge, deliberately off-panel to avoid self-judging)
+# fill in ANTHROPIC_API_KEY, OPENAI_API_KEY
+# (OPENAI_API_KEY is shared by the test panel's gpt-5 AND the gpt-3.5-turbo judge;
+# the judge is deliberately an older, well-guardrailed, off-panel model to avoid
+# self-judging bias and to anchor verdicts against strong RLHF safety priors.)
 ```
 
 ## Usage

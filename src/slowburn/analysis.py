@@ -16,6 +16,13 @@ Owner: Shreyas. See ROLES.md.
 import math
 from pathlib import Path
 
+import matplotlib
+# Force non-interactive backend before pyplot import. Otherwise matplotlib defaults
+# to TkAgg on Windows, which spawns tkinter Variable objects whose __del__ fires
+# from non-main threads (FastAPI BackgroundTask worker) and produces noisy
+# "main thread is not in main loop" RuntimeErrors at garbage-collection time.
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from rich.console import Console
