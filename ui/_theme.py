@@ -172,21 +172,47 @@ hr { border-color: #3a1a0a !important; opacity: 0.6; }
     50%      { opacity: 1;    box-shadow: 0 0 14px #ff5722; }
 }
 
-/* ── EMBERWATCH hero title ────────────────────────────────────────────── */
+/* ── Logo (replaces the text title when ui/assets/emberwatch_logo.png exists) ── */
+.ember-logo-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0 1.2rem 0;
+}
+
+.ember-logo {
+    max-width: min(720px, 65vw);
+    width: 100%;
+    height: auto;
+    /* drop-shadow now traces the actual logo silhouette since the PNG has
+       a real alpha channel. */
+    filter: drop-shadow(0 0 24px rgba(255, 168, 74, 0.35))
+            drop-shadow(0 0 50px rgba(214, 58, 24, 0.25));
+    animation: ember-flicker 5s ease-in-out infinite;
+}
+
+/* ── EMBERWATCH hero title (fallback if no logo file) ─────────────────── */
 .ember-title {
     font-family: 'Cinzel', 'Georgia', serif;
-    font-size: clamp(3.5rem, 9vw, 6.5rem);
+    font-size: clamp(5rem, 13vw, 10rem);
     font-weight: 900;
     text-align: center;
     background: linear-gradient(180deg,
-        #ffd9b0 0%, #ffb38a 18%, #ff7849 38%, #ff5722 58%, #c41212 80%, #5a1a0a 100%);
+        #fff2c0 0%,
+        #ffd366 15%,
+        #ffa84a 32%,
+        #ff7849 52%,
+        #d63a18 76%,
+        #5a1a0a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: 0.18em;
     margin: 1rem 0 0 0;
     line-height: 1;
-    filter: drop-shadow(0 0 25px rgba(255, 87, 34, 0.35));
+    filter: drop-shadow(0 0 30px rgba(255, 168, 74, 0.35))
+            drop-shadow(0 0 50px rgba(214, 58, 24, 0.2));
     animation: ember-flicker 5s ease-in-out infinite;
 }
 
@@ -230,26 +256,34 @@ hr { border-color: #3a1a0a !important; opacity: 0.6; }
 .ember-lede {
     text-align: center;
     font-family: 'Cinzel', 'Georgia', serif;
-    font-size: 1.45rem;
+    font-size: clamp(2.2rem, 4.5vw, 3.4rem);
     font-weight: 400;
     font-style: italic;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     color: #d8c8b0;
-    max-width: 820px;
-    margin: 1.2rem auto 3rem;
-    line-height: 1.5;
-    text-shadow: 0 0 16px rgba(0, 0, 0, 0.6);
+    max-width: 900px;
+    margin: 1.8rem auto 3.2rem;
+    line-height: 1.3;
+    text-shadow: 0 0 22px rgba(0, 0, 0, 0.6);
 }
 
 .ember-lede-em {
-    background: linear-gradient(180deg, #ffd9b0 0%, #ff7849 45%, #ff5722 75%, #c41212 100%);
+    background: linear-gradient(180deg,
+        #fff2c0 0%,    /* pale yellow highlight */
+        #ffd366 18%,   /* gold */
+        #ffa84a 35%,   /* amber */
+        #ff7849 55%,   /* orange */
+        #d63a18 78%,   /* red-orange */
+        #7a1818 100%   /* deep crimson */
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 700;
     font-style: italic;
     letter-spacing: 0.06em;
-    filter: drop-shadow(0 0 14px rgba(255, 87, 34, 0.45));
+    filter: drop-shadow(0 0 12px rgba(255, 168, 74, 0.4))
+            drop-shadow(0 0 18px rgba(214, 58, 24, 0.25));
     animation: ember-flicker-soft 4.2s ease-in-out infinite;
 }
 
@@ -315,11 +349,17 @@ hr { border-color: #3a1a0a !important; opacity: 0.6; }
     margin: 0 0 0.6rem 0;
     line-height: 1.1;
     background: linear-gradient(180deg,
-        #ffd9b0 0%, #ffb38a 15%, #ff7849 35%, #ff5722 55%, #c41212 78%, #5a1a0a 100%);
+        #fff2c0 0%,
+        #ffd366 15%,
+        #ffa84a 32%,
+        #ff7849 52%,
+        #d63a18 76%,
+        #5a1a0a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 12px rgba(255, 87, 34, 0.45));
+    filter: drop-shadow(0 0 12px rgba(255, 168, 74, 0.4))
+            drop-shadow(0 0 18px rgba(214, 58, 24, 0.25));
     animation: ember-flicker-soft 3.6s ease-in-out infinite;
     text-transform: uppercase;
     position: relative;

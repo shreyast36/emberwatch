@@ -1,5 +1,6 @@
 """Emberwatch — landing. Routes to Slowburn or AlignGuard."""
 
+import base64
 import os
 import sys
 from pathlib import Path
@@ -29,14 +30,23 @@ except Exception:
 status_bar(_api_ok)
 
 # ── Hero ───────────────────────────────────────────────────────────────────────
-st.markdown('<div style="height: 4rem;"></div>', unsafe_allow_html=True)
-st.markdown('<h1 class="ember-title">EMBERWATCH</h1>', unsafe_allow_html=True)
-st.markdown('<div class="ember-tagline">Observe · Anticipate · Prevent</div>', unsafe_allow_html=True)
+st.markdown('<div style="height: 2rem;"></div>', unsafe_allow_html=True)
+
+# Logo
+_logo_path = Path(__file__).parent / "assets" / "emberwatch_logo_transparent.png"
+b64 = base64.b64encode(_logo_path.read_bytes()).decode("ascii")
+st.markdown(
+    f'<div class="ember-logo-wrap">'
+    f'<img class="ember-logo" src="data:image/png;base64,{b64}" alt="Emberwatch">'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+
 st.markdown('<hr class="ember-hr">', unsafe_allow_html=True)
 st.markdown(
     '<div style="display:flex; justify-content:center; width:100%;">'
     '<p class="ember-lede">'
-    'AI safety, <span class="ember-lede-em">beyond the benchmark.</span>'
+    'Safety <span class="ember-lede-em">smolders.</span>'
     '</p>'
     '</div>',
     unsafe_allow_html=True,
