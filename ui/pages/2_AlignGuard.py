@@ -48,7 +48,13 @@ with st.sidebar:
         else:
             st.error(f"API returned {r.status_code}")
     except Exception:
-        st.error("API offline. Start it with:\n`uvicorn api.main:app --reload`")
+        st.warning(
+            "🛡️ **Emberwatch UI demo — backend not connected.** "
+            "Running on Streamlit Cloud or another host without the FastAPI backend. "
+            "To actually run AlignGuard sessions and generate reports, clone the repo and "
+            "run `python run_ui.py` locally (full functional toolkit). "
+            "Repo: github.com/shreyast36/slowburn"
+        )
 
     st.divider()
     st.markdown(
