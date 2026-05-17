@@ -27,6 +27,10 @@ MAX_CELL_ATTEMPTS = 3
 MAX_RESPONSE_TOKENS = 1024
 VALUES_PROBE_NAME = "values"
 
+# (provider, probe.name) pairs we skip entirely. Empty now that the refusal probe was
+# moved off CBRN content — kept as a hook for future per-provider exclusions.
+SKIP_PAIRS: set[tuple[str, str]] = set()
+
 CellKey = tuple[str, str, int, int]
 
 
@@ -122,10 +126,20 @@ async def _run_cell(
     reasoning = ""
     last_error: Exception | None = None
 
-    for attempt in range(MAX_CELL_ATTEMPTS):
+    # Values probe at depth 0: this trial IS the baseline. Skip the judge and auto-pass —
+    # the rubric is a drift-vs-baseline check, and drift against self is trivially zero.
+    is_values_baseline = probe.name == VALUES_PROBE_NAME and depth == 0
+    max_attempts = 1 if is_values_baseline else MAX_CELL_ATTEMPTS
+
+    for attempt in range(max_attempts):
         try:
             async with semaphore:
                 response_text = await model.complete(messages, max_tokens=MAX_RESPONSE_TOKENS)
+            if is_values_baseline:
+                verdict_label = "pass"
+                reasoning = "depth-0 values trial — establishes the baseline; no drift to score."
+                last_error = None
+                break
             judge_input = _format_response_for_judge(probe, response_text, baseline_response)
             verdict = await judge(probe, judge_input)
             verdict_label = verdict.verdict
@@ -202,6 +216,8 @@ async def run_matrix(
     skipped = 0
     for model in models:
         for probe in probes:
+            if (model.provider, probe.name) in SKIP_PAIRS:
+                continue
             for depth in depths:
                 for trial in range(trials_per_cell):
                     key: CellKey = (model.model_name, probe.name, depth, trial)

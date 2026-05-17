@@ -19,6 +19,11 @@ import google.genai.errors
 import google.genai.types
 import openai
 
+# Safety identifier sent on every model call. OpenAI-compatible providers (openai, xai, wafer)
+# accept it as the `user` field; Anthropic accepts it as metadata.user_id. Tags this traffic as
+# legitimate AI-safety research so provider abuse-detection routes flags to the right team.
+SAFETY_IDENTIFIER = "slowburn-ai-safety-training-research"
+
 
 async def _with_backoff(fn, retryable_exceptions, max_attempts=6, base=2.0):
     """Helper function to apply exponential backoff to API calls."""
@@ -43,11 +48,11 @@ class Model(Protocol):
 
 
 class ClaudeModel:
-    """Default model_name: 'claude-sonnet-4-6'. Uses the anthropic SDK."""
+    """Default model_name: 'claude-opus-4-7'. Uses the anthropic SDK."""
 
     provider = "anthropic"
 
-    def __init__(self, model_name: str = "claude-sonnet-4-7") -> None:
+    def __init__(self, model_name: str = "claude-opus-4-7") -> None:
         self.model_name = model_name
         self.client = anthropic.AsyncAnthropic()
 
@@ -62,7 +67,11 @@ class ClaudeModel:
                 system=system,
                 messages=convo,
                 max_tokens=max_tokens,
+                metadata={"user_id": SAFETY_IDENTIFIER},
             )
+            # stop_reason='refusal' yields empty content; surface that to the judge as a refusal signal.
+            if response.stop_reason == "refusal" or not response.content:
+                return "[model declined to produce any output (stop_reason='refusal')]"
             return response.content[0].text
 
         return await _with_backoff(
@@ -82,12 +91,22 @@ class OpenAIModel:
 
     async def complete(self, messages: list[dict], max_tokens: int) -> str:
         async def _call():
-            response = await self.client.chat.completions.create(
-                model=self.model_name,
-                messages=messages,
-                max_completion_tokens=max_tokens,
-            )
-            return response.choices[0].message.content
+            try:
+                response = await self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    max_completion_tokens=max_tokens,
+                    user=SAFETY_IDENTIFIER,
+                )
+            except openai.BadRequestError as e:
+                # OpenAI's gateway pre-screens prompts and 400s with code='invalid_prompt'
+                # on bio/CBRN-adjacent content. The model never saw the request — that is
+                # itself a strong refusal; surface it to the judge as such.
+                # The SDK unwraps the `error` envelope, exposing code/type directly.
+                if getattr(e, "code", None) == "invalid_prompt":
+                    return "[model declined to produce any output (openai gateway: invalid_prompt)]"
+                raise
+            return response.choices[0].message.content or ""
 
         return await _with_backoff(
             _call,
@@ -124,7 +143,19 @@ class GeminiModel:
                 contents=convo,
                 config=config,
             )
-            return response.text
+            if response.text:
+                return response.text
+            # Empty .text usually means a safety filter or block; surface why so the judge can score it.
+            block_reason = getattr(getattr(response, "prompt_feedback", None), "block_reason", None)
+            finish_reason = None
+            try:
+                finish_reason = response.candidates[0].finish_reason
+            except (AttributeError, IndexError):
+                pass
+            return (
+                f"[model declined to produce any output "
+                f"(finish_reason={finish_reason!r}, block_reason={block_reason!r})]"
+            )
 
         return await _with_backoff(
             _call,
@@ -150,8 +181,9 @@ class WaferModel:
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,  # Use standard max_tokens for older compatible APIs
+                user=SAFETY_IDENTIFIER,
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
 
         return await _with_backoff(
             _call,
@@ -177,8 +209,9 @@ class GrokModel:
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,
+                user=SAFETY_IDENTIFIER,
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
 
         return await _with_backoff(
             _call,

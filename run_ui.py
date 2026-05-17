@@ -47,8 +47,8 @@ def main() -> None:
         ],
         cwd=ROOT,
     )
-    print("  FastAPI  →  http://localhost:8000")
-    print("  API docs →  http://localhost:8000/docs")
+    print("  FastAPI  ->  http://localhost:8000")
+    print("  API docs ->  http://localhost:8000/docs")
     time.sleep(2)
 
     ui_proc = subprocess.Popen(
@@ -60,7 +60,7 @@ def main() -> None:
         ],
         cwd=ROOT,
     )
-    print("  Streamlit → http://localhost:8501")
+    print("  Streamlit -> http://localhost:8501")
     print("=" * 60)
     print("  Press Ctrl+C to stop both servers.")
     print("=" * 60)
@@ -68,7 +68,7 @@ def main() -> None:
     try:
         api_proc.wait()
     except KeyboardInterrupt:
-        print("\nShutting down…")
+        print("\nShutting down...")
     finally:
         api_proc.terminate()
         ui_proc.terminate()

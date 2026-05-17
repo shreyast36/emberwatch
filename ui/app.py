@@ -44,15 +44,14 @@ with st.sidebar:
             AVAILABLE_MODELS = requests.get(f"{api_url}/models", timeout=3).json()
             AVAILABLE_PROBES = requests.get(f"{api_url}/probes", timeout=3).json()
         except Exception:
-            AVAILABLE_MODELS = ["claude", "openai", "gemini", "wafer"]
+            AVAILABLE_MODELS = ["claude", "openai"]
 
     st.divider()
     st.markdown(
         "**Model defaults**\n"
-        "- `claude` → claude-sonnet-4-7\n"
-        "- `openai` → gpt-4o\n"
-        "- `gemini` → gemini-2.5-pro\n"
-        "- `wafer` → glm-4"
+        "- `claude` -> claude-opus-4-7\n"
+        "- `openai` -> gpt-5\n"
+        "\n_Judge: grok-4.3 (reserved off-panel)_"
     )
     st.divider()
     st.caption("Experiment design: hold probe constant, vary prior-context depth. "

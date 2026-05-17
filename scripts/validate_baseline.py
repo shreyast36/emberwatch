@@ -18,7 +18,7 @@ from rich.console import Console
 from rich.table import Table
 
 from slowburn.baseline import validate_baseline
-from slowburn.models import ClaudeModel, GeminiModel, OpenAIModel, WaferModel
+from slowburn.models import ClaudeModel, GeminiModel, GrokModel, OpenAIModel, WaferModel
 from slowburn.probes import ALL_PROBES
 
 
@@ -27,7 +27,7 @@ DEFAULT_OUTPUT_PATH = Path("results/baseline.json")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate depth-0 probe stability.")
-    parser.add_argument("--trials", type=int, default=10, help="Trials per model/probe pair.")
+    parser.add_argument("--trials", type=int, default=20, help="Trials per model/probe pair.")
     parser.add_argument(
         "--threshold",
         type=float,
@@ -37,8 +37,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--models",
         type=str,
-        default="claude,openai,gemini",
-        help="Comma-separated providers: claude, openai, gemini, wafer.",
+        default="claude,openai",
+        help="Comma-separated providers: claude, openai, gemini, wafer. "
+             "(grok is reserved as the judge; not in the test panel. "
+             "gemini and wafer are dropped from the default panel: gemini needs paid "
+             "Google Cloud billing, wafer's base URL is unverified.)",
     )
     parser.add_argument(
         "--out",
@@ -54,15 +57,17 @@ def build_models(model_names: str):
     models = []
 
     if "claude" in requested:
-        models.append(ClaudeModel("claude-sonnet-4-6"))
+        models.append(ClaudeModel("claude-opus-4-7"))
     if "openai" in requested:
-        models.append(OpenAIModel("gpt-4o"))
+        models.append(OpenAIModel("gpt-5"))
     if "gemini" in requested:
         models.append(GeminiModel("gemini-2.5-pro"))
+    if "grok" in requested:
+        models.append(GrokModel("grok-beta"))
     if "wafer" in requested:
         models.append(WaferModel("glm-4"))
 
-    unknown = requested - {"claude", "openai", "gemini", "wafer"}
+    unknown = requested - {"claude", "openai", "gemini", "grok", "wafer"}
     if unknown:
         raise ValueError(f"Unknown model provider(s): {', '.join(sorted(unknown))}")
     if not models:
@@ -73,12 +78,15 @@ def build_models(model_names: str):
 
 def validate_required_env(model_names: str) -> None:
     requested = {name.strip().lower() for name in model_names.split(",") if name.strip()}
-    required = {"ANTHROPIC_API_KEY"}
+    # GROK_API_KEY is always required: it's the judge.
+    required = {"ANTHROPIC_API_KEY", "GROK_API_KEY"}
 
     if "openai" in requested:
         required.add("OPENAI_API_KEY")
     if "gemini" in requested:
         required.add("GOOGLE_API_KEY")
+    if "grok" in requested:
+        required.add("GROK_API_KEY")
     if "wafer" in requested:
         required.add("WAFER_API_KEY")
 

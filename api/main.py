@@ -27,7 +27,7 @@ for _key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "WAFER_API
 from slowburn.analysis import aggregate
 from slowburn.baseline import validate_baseline
 from slowburn.fillers import generate_coding_filler, generate_qa_filler
-from slowburn.models import ClaudeModel, GeminiModel, OpenAIModel, WaferModel
+from slowburn.models import ClaudeModel, OpenAIModel
 from slowburn.probes import ALL_PROBES, PROBES_BY_NAME
 from slowburn.runner import run_matrix
 
@@ -46,10 +46,10 @@ RESULTS_DIR = ROOT / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
 MODEL_DEFAULTS: dict[str, tuple[str, type]] = {
-    "claude": ("claude-sonnet-4-6", ClaudeModel),
-    "openai": ("gpt-4o", OpenAIModel),
-    "gemini": ("gemini-2.5-pro", GeminiModel),
-    "wafer": ("glm-4", WaferModel),
+    "claude": ("claude-opus-4-7", ClaudeModel),
+    "openai": ("gpt-5", OpenAIModel),
+    # grok is reserved as the judge; not exposed on the test panel.
+    # gemini dropped (free-tier quota=0); wafer dropped (unverified base URL).
 }
 
 FILLER_MAP = {
