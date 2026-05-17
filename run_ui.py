@@ -33,7 +33,7 @@ def main() -> None:
     python = _venv_python()
 
     print("=" * 60)
-    print("  SlowBurn UI Launcher")
+    print("  LLM Safety Toolkit Launcher")
     print(f"  Python: {python}")
     print("=" * 60)
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 
 ROOT = Path(__file__).parent.parent
@@ -27,9 +27,13 @@ for _key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "WAFER_API
 from slowburn.analysis import aggregate
 from slowburn.baseline import validate_baseline
 from slowburn.fillers import generate_coding_filler, generate_qa_filler
-from slowburn.models import ClaudeModel, OpenAIModel
+from slowburn.models import ClaudeModel, OpenAIModel, MODEL_CATALOG, JUDGE_MODEL_CATALOG
 from slowburn.probes import ALL_PROBES, PROBES_BY_NAME
 from slowburn.runner import run_matrix
+
+from alignguard.runner import run_alignguard
+from alignguard.store import AlignmentStore
+from alignguard.metrics import aggregate_metrics
 
 app = FastAPI(title="SlowBurn API", description="AI Safety Degradation Testing")
 
@@ -44,6 +48,15 @@ _tasks: dict[str, dict] = {}
 
 RESULTS_DIR = ROOT / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
+
+AG_STORE_PATH = RESULTS_DIR / "alignguard" / "signals.jsonl"
+AG_ALERTS_PATH = RESULTS_DIR / "alignguard" / "alerts.jsonl"
+AG_REPORTS_DIR = RESULTS_DIR / "alignguard" / "reports"
+AG_METRICS_DIR = RESULTS_DIR / "alignguard" / "metrics"
+
+AG_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+AG_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+AG_METRICS_DIR.mkdir(parents=True, exist_ok=True)
 
 MODEL_DEFAULTS: dict[str, tuple[str, type]] = {
     "claude": ("claude-sonnet-4-6", ClaudeModel),
@@ -317,3 +330,138 @@ def get_csv():
     if not path.exists():
         raise HTTPException(404, "No CSV yet. Run analysis first.")
     return path.read_text(encoding="utf-8")
+
+
+# ── AlignGuard ─────────────────────────────────────────────────────────────────
+
+class AlignGuardRequest(BaseModel):
+    queries: list[str] = []
+    pipeline_model: str = "claude-sonnet-4-6"
+    monitor_model: str = "claude-opus-4-7"
+    run_canary: bool = True
+    generate_report: bool = True
+
+
+@app.get("/alignguard/models")
+def alignguard_models():
+    pipeline = list(MODEL_CATALOG.keys())
+    monitor = list(JUDGE_MODEL_CATALOG.keys())
+    return {"pipeline": pipeline, "monitor": monitor}
+
+
+@app.post("/alignguard/run")
+async def run_alignguard_endpoint(req: AlignGuardRequest, bg: BackgroundTasks):
+    if not req.queries:
+        raise HTTPException(400, "No queries provided.")
+    tid, _ = _new_task("alignguard")
+    bg.add_task(_alignguard_bg, tid, req)
+    return {"task_id": tid}
+
+
+async def _alignguard_bg(tid: str, req: AlignGuardRequest) -> None:
+    task = _tasks[tid]
+    try:
+        task["total"] = len(req.queries)
+        task["log"].append(
+            f"Starting AlignGuard: {len(req.queries)} query(ies) | "
+            f"pipeline={req.pipeline_model} | monitor={req.monitor_model}"
+        )
+
+        def _log(msg: str) -> None:
+            task["log"].append(msg)
+
+        alerts = await run_alignguard(
+            queries=req.queries,
+            store_path=AG_STORE_PATH,
+            pipeline_model=req.pipeline_model,
+            monitor_model=req.monitor_model,
+            run_canary=req.run_canary,
+            generate_report=req.generate_report,
+            reports_dir=AG_REPORTS_DIR,
+            alerts_path=AG_ALERTS_PATH,
+            progress_cb=_log,
+        )
+
+        task["status"] = "completed"
+        task["result"] = [a.model_dump() for a in alerts]
+        task["log"].append(f"Done. {len(alerts)} session(s) analysed.")
+    except Exception as exc:
+        task["status"] = "error"
+        task["error"] = str(exc)
+        task["log"].append(f"Error: {exc}")
+
+
+@app.get("/alignguard/alerts")
+def get_alignguard_alerts():
+    if not AG_ALERTS_PATH.exists():
+        return []
+    alerts = []
+    with AG_ALERTS_PATH.open(encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    alerts.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+    return alerts
+
+
+@app.get("/alignguard/reports")
+def list_alignguard_reports():
+    if not AG_REPORTS_DIR.exists():
+        return []
+    reports = []
+    for p in sorted(AG_REPORTS_DIR.glob("*.md"), key=lambda x: x.stat().st_mtime, reverse=True):
+        session_id = p.stem
+        reports.append({
+            "session_id": session_id,
+            "filename": p.name,
+            "timestamp": p.stat().st_mtime,
+        })
+    return reports
+
+
+@app.get("/alignguard/reports/{session_id}")
+def get_alignguard_report(session_id: str):
+    path = AG_REPORTS_DIR / f"{session_id}.md"
+    if not path.exists():
+        raise HTTPException(404, f"Report not found for session {session_id!r}")
+    return PlainTextResponse(path.read_text(encoding="utf-8"), media_type="text/markdown")
+
+
+@app.post("/alignguard/metrics")
+def generate_alignguard_metrics():
+    if not AG_STORE_PATH.exists():
+        raise HTTPException(400, "No signals yet. Run AlignGuard on at least one session first.")
+    try:
+        aggregate_metrics(store_path=AG_STORE_PATH, output_dir=AG_METRICS_DIR)
+    except Exception as exc:
+        raise HTTPException(500, str(exc)) from exc
+    plots = sorted(p.name for p in AG_METRICS_DIR.glob("*.png"))
+    return {"plots": plots, "has_csv": (AG_METRICS_DIR / "summary.csv").exists()}
+
+
+@app.get("/alignguard/metrics/plots")
+def list_alignguard_metric_plots():
+    if not AG_METRICS_DIR.exists():
+        return []
+    return sorted(p.name for p in AG_METRICS_DIR.glob("*.png"))
+
+
+@app.get("/alignguard/metrics/plot/{name}")
+def get_alignguard_metric_plot(name: str):
+    if not name.endswith(".png"):
+        raise HTTPException(400, "PNG files only")
+    path = AG_METRICS_DIR / name
+    if not path.exists():
+        raise HTTPException(404, "Plot not found")
+    return FileResponse(str(path), media_type="image/png")
+
+
+@app.get("/alignguard/metrics/csv")
+def get_alignguard_metrics_csv():
+    path = AG_METRICS_DIR / "summary.csv"
+    if not path.exists():
+        raise HTTPException(404, "No CSV yet. Generate metrics first.")
+    return PlainTextResponse(path.read_text(encoding="utf-8"), media_type="text/csv")

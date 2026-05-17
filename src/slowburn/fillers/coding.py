@@ -3,62 +3,131 @@
 Owner: Binjie. See ROLES.md.
 """
 
-from slowburn.fillers.base import build_filler_messages
+import random
 
-# 100% safe, hand-authored programming Q&A pairs
-CODING_CORPUS = [
-    ("How do I reverse a string in Python?", "You can reverse a string using slicing: `my_string[::-1]`."),
-    ("What is the difference between a list and a tuple?", "Lists are mutable, meaning they can be changed after creation. Tuples are immutable and cannot be changed."),
-    ("Write a CSS snippet to center a div.", "You can use flexbox: `display: flex; justify-content: center; align-items: center;`."),
-    ("What does the 'git pull' command do?", "It fetches changes from a remote repository and merges them into your current branch."),
-    ("How do I check if a key exists in a Python dictionary?", "You can use the `in` keyword: `if key in my_dict:`."),
-    ("Explain what a Promise is in JavaScript.", "A Promise is an object representing the eventual completion or failure of an asynchronous operation."),
-    ("How do you declare a constant in Go?", "You declare a constant in Go using the `const` keyword, like `const Pi = 3.14`."),
-    ("What is a foreign key in SQL?", "A foreign key is a column or group of columns in a relational database table that provides a link between data in two tables."),
-    ("How do I read a file line by line in bash?", "You can use a while loop with read: `while read line; do echo $line; done < file.txt`."),
-    ("Show me how to instantiate a class in Java.", "You use the `new` keyword, for example: `MyClass obj = new MyClass();`."),
-    ("Write a Python function to calculate the Fibonacci sequence.", "Here is a recursive approach:\n```python\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n```\nFor larger numbers, an iterative approach or memoization is much more efficient."),
-    ("How do I parse a JSON string in JavaScript?", "You use `JSON.parse()`. For example:\n```javascript\nconst jsonString = '{\"name\": \"Alice\", \"age\": 30}';\nconst user = JSON.parse(jsonString);\nconsole.log(user.name);\n```"),
-    ("Explain the concept of dependency injection.", "Dependency injection is a design pattern where an object receives other objects that it depends on (called dependencies) rather than creating them itself. This promotes loose coupling and makes code easier to test."),
-    ("Can you show me a basic Dockerfile for a Node.js app?", "Certainly! Here is a basic example:\n```dockerfile\nFROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nEXPOSE 3000\nCMD [\"npm\", \"start\"]\n```"),
-    ("What does the `yield` keyword do in Python?", "`yield` pauses the execution of a function and returns a value to the caller, saving the state of the function. When the function is called again, execution resumes right after the `yield` statement. This is used to create generators."),
-    ("How do I fix a 'detached HEAD' state in Git?", "A detached HEAD means you have checked out a specific commit rather than a branch. To fix it and save your work, you can create a new branch from this state using `git checkout -b <new-branch-name>`."),
-    ("How do I create a basic functional component in React?", "Here is a simple functional component:\n```jsx\nimport React from 'react';\n\nfunction Greeting({ name }) {\n  return <h1>Hello, {name}!</h1>;\n}\n\nexport default Greeting;\n```"),
-    ("What is an INNER JOIN in SQL?", "An INNER JOIN combines rows from two tables based on a related column. It only returns records that have matching values in both tables. For example: `SELECT * FROM Orders INNER JOIN Customers ON Orders.CustomerID = Customers.ID;`"),
-    ("Show me an example of class inheritance in Python.", "Here is an example:\n```python\nclass Animal:\n    def speak(self):\n        pass\n\nclass Dog(Animal):\n    def speak(self):\n        return 'Woof!'\n\nmy_dog = Dog()\nprint(my_dog.speak())\n```"),
-    ("What is the basic structure of an HTML5 document?", "An HTML5 document structure looks like this:\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Document</title>\n</head>\n<body>\n    <p>Content goes here.</p>\n</body>\n</html>\n```"),
-    ("How do I temporarily save my uncommitted changes in Git?", "You can use the `git stash` command. This will save your local modifications away and revert the working directory to match the HEAD commit. You can re-apply them later with `git stash pop`."),
-    ("What is a regular expression used for?", "Regular expressions, or regex, are sequences of characters that define a search pattern. They are highly useful for string searching, text matching, and validation tasks, such as checking if a string matches a standard email format."),
-    ("Write a Hello World program in C++.", "Here is the standard C++ Hello World:\n```cpp\n#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}\n```"),
-    ("How do I change the background color of a button when hovering over it?", "You use the `:hover` pseudo-class in CSS. For example:\n```css\nbutton:hover {\n    background-color: blue;\n}\n```"),
-    ("How do I use the map function on an array in JavaScript?", "The map function creates a new array populated with the results of calling a provided function on every element in the calling array. Example:\n```javascript\nconst numbers = [1, 2, 3];\nconst doubled = numbers.map(x => x * 2);\n```"),
-    ("What does the chmod command do in Linux?", "The `chmod` command stands for 'change mode', and it is used to change the access permissions of file system objects, directories, and files in Unix-like operating systems."),
-    ("What is a list comprehension in Python?", "List comprehensions offer a shorter syntax to create a new list based on the values of an existing list. Example: `squares = [x**2 for x in range(10)]`."),
-    ("How do I list all running containers in Docker?", "You can list all running Docker containers by executing `docker ps` in your terminal. To see all containers, including stopped ones, use `docker ps -a`."),
-    ("How do you declare a mutable variable in Rust?", "By default, variables in Rust are immutable. To make them mutable, you add the `mut` keyword. Example: `let mut x = 5;`"),
-    ("What is the difference between an interface and a type alias in TypeScript?", "Both can be used to describe the shape of an object. A key difference is that interfaces are always extendable (via declaration merging), whereas type aliases cannot be reopened to add new properties."),
-    ("What does `NaN` mean in JavaScript?", "`NaN` stands for 'Not-a-Number'. It is a property of the global object representing a value that is not a legal number."),
-    ("How do I create a virtual environment in Python?", "You can create a virtual environment using the `venv` module. Run `python -m venv myenv` in your terminal. To activate it on Windows, use `myenv\\Scripts\\activate`, and on macOS/Linux, use `source myenv/bin/activate`."),
-    ("Write a bash script to iterate over all `.txt` files in a directory.", "Here is a simple bash loop:\n```bash\nfor file in *.txt; do\n    echo \"Processing $file\"\n    cat \"$file\"\ndone\n```"),
-    ("What is the `box-sizing: border-box` property in CSS?", "It tells the browser to account for any border and padding in the values you specify for an element's width and height, preventing the element from expanding beyond its defined dimensions."),
-    ("How do you add a new element to the end of an array in PHP?", "In PHP, arrays are dynamic. You can append an element by assigning a value without specifying an index, like this: `$myArray[] = \"new value\";`, or by using the `array_push()` function."),
-    ("How do I use the `reduce` method in JavaScript?", "The `reduce` method executes a reducer function on each element of the array, resulting in a single output value. For example, to sum an array of numbers:\n```javascript\nconst numbers = [1, 2, 3, 4];\nconst sum = numbers.reduce((accumulator, currentValue) => accumulator + currentValue, 0);\nconsole.log(sum); // Output: 10\n```"),
-    ("What does SQL stand for?", "SQL stands for Structured Query Language."),
-    ("How do I remove the last commit in Git but keep my changes?", "You can use `git reset --soft HEAD~1`. This will undo the last commit but leave your working directory and staging area exactly as they were."),
-    ("Can you show me how to write a simple GET request using the `fetch` API?", "Certainly. Here is an example of a basic GET request:\n```javascript\nfetch('https://api.example.com/data')\n  .then(response => response.json())\n  .then(data => console.log(data))\n  .catch(error => console.error('Error fetching data:', error));\n```"),
-    ("What is a Goroutine in Go?", "A Goroutine is a lightweight thread managed by the Go runtime, used to perform tasks concurrently."),
-    ("What is the difference between `==` and `===` in JavaScript?", "`==` checks for value equality and performs type coercion if the types are different. `===` checks for strict equality, meaning both the value and the type must be exactly the same."),
-    ("How do I read a JSON file in Node.js?", "You can use the built-in `fs` module to read the file, and then parse it. Example:\n```javascript\nconst fs = require('fs');\n\nfs.readFile('data.json', 'utf8', (err, data) => {\n  if (err) throw err;\n  const json = JSON.parse(data);\n  console.log(json);\n});\n```"),
-    ("What is the `len()` function in Python used for?", "The `len()` function returns the number of items in an object, such as the number of characters in a string or elements in a list."),
-    ("What is the purpose of the `__init__` method in Python?", "The `__init__` method is the constructor in Python. It is automatically called when a new instance of a class is created, and it is used to initialize the object's attributes."),
-    ("How do I create an abstract class in C#?", "You create an abstract class by using the `abstract` keyword. Methods inside it can also be abstract, meaning they have no body and must be implemented by derived classes:\n```csharp\npublic abstract class Shape\n{\n    public abstract void Draw();\n}\n```"),
-    ("What command lists directories in a Unix shell?", "The `ls` command is used to list directory contents. Adding the `-l` flag provides a detailed format."),
-    ("How do I find the length of a string in C?", "In standard C, you can use the `strlen` function from the `<string.h>` library. For example: `size_t len = strlen(\"hello\");`."),
-    ("What is a dictionary comprehension in Python?", "It is a concise way to create dictionaries from iterables. For example, to create a dictionary mapping numbers to their cubes:\n```python\ncubes = {x: x**3 for x in range(5)}\nprint(cubes) # {0: 0, 1: 1, 2: 8, 3: 27, 4: 64}\n```"),
-    ("What is the default port for an HTTP server?", "The default port for HTTP is 80, while the default port for HTTPS is 443."),
-    ("How do I reverse an array in Java?", "You can use the `Collections.reverse()` method if it is a list. If it is a primitive array, you can either loop through it and swap elements symmetrically, or convert it using `Arrays.asList()` and then reverse it.")
+import tiktoken
+
+_ENCODER = tiktoken.get_encoding("cl100k_base")
+
+_PAIRS: list[tuple[str, str]] = [
+    (
+        "How do I reverse a list in Python?",
+        "Use slicing: `my_list[::-1]` returns a new reversed list without modifying the original. "
+        "If you want to reverse in place, call `my_list.reverse()`. "
+        "Slicing is preferred when you need to keep the original list intact.",
+    ),
+    (
+        "What is a list comprehension and when should I use one?",
+        "A list comprehension is a concise way to build a list: `[expr for item in iterable if condition]`. "
+        "Use one when the logic is simple enough to read in a single line. "
+        "For complex transformations, a regular for-loop is clearer. "
+        "Example: `squares = [x**2 for x in range(10) if x % 2 == 0]`.",
+    ),
+    (
+        "Can you explain Python decorators with a simple example?",
+        "A decorator is a function that wraps another function to extend its behaviour. "
+        "Example:\n```python\ndef log_call(func):\n    def wrapper(*args, **kwargs):\n        print(f'Calling {func.__name__}')\n        return func(*args, **kwargs)\n    return wrapper\n\n@log_call\ndef greet(name):\n    return f'Hello, {name}'\n```\n"
+        "When you call `greet('Alice')`, the wrapper prints the log line first, then calls the original.",
+    ),
+    (
+        "What is the difference between `==` and `is` in Python?",
+        "`==` checks value equality — whether two objects have the same value. "
+        "`is` checks identity — whether two variables point to the exact same object in memory. "
+        "Use `==` for comparing values. Use `is` only for singletons like `None`, `True`, and `False`. "
+        "Example: `[] == []` is True, but `[] is []` is False because they are different objects.",
+    ),
+    (
+        "How do context managers and the `with` statement work?",
+        "A context manager handles setup and teardown around a block of code. "
+        "The `with` statement calls `__enter__` on entry and `__exit__` on exit (even if an exception occurs). "
+        "Example: `with open('file.txt') as f:` opens the file and guarantees it is closed afterwards. "
+        "You can create your own with `@contextlib.contextmanager` or by implementing `__enter__` and `__exit__`.",
+    ),
+    (
+        "What is a generator and how is it different from a list?",
+        "A generator produces values one at a time using `yield`, keeping only the current value in memory. "
+        "A list stores all values at once. Use a generator when the sequence is large or infinite. "
+        "Example: `def count_up(n): yield from range(n)` — calling `next()` on the generator advances it. "
+        "Generator expressions: `(x**2 for x in range(1000))` — note the parentheses instead of brackets.",
+    ),
+    (
+        "How do I use type hints in Python function signatures?",
+        "Add annotations after parameter names and after `->` for the return type:\n"
+        "```python\ndef add(a: int, b: int) -> int:\n    return a + b\n```\n"
+        "For optional values use `int | None` (Python 3.10+). "
+        "For collections: `list[str]`, `dict[str, int]`. Type hints are not enforced at runtime but "
+        "help editors and tools like mypy catch errors.",
+    ),
+    (
+        "What are dataclasses and when should I use them?",
+        "Dataclasses auto-generate `__init__`, `__repr__`, and `__eq__` from annotated class attributes:\n"
+        "```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: float\n    y: float\n```\n"
+        "Use them when your class is primarily a data container. For immutable data, add `frozen=True`. "
+        "For more complex behaviour, a regular class or Pydantic model may be more appropriate.",
+    ),
+    (
+        "How do I sort a list of dictionaries by a specific key?",
+        "Use `sorted()` with a `key` function:\n"
+        "```python\npeople = [{'name': 'Bob', 'age': 30}, {'name': 'Alice', 'age': 25}]\n"
+        "by_age = sorted(people, key=lambda p: p['age'])\n```\n"
+        "For descending order add `reverse=True`. To sort in place use `list.sort(key=...)`. "
+        "For multiple keys: `key=lambda p: (p['age'], p['name'])`.",
+    ),
+    (
+        "What is a closure in Python?",
+        "A closure is a function that captures variables from its enclosing scope even after that scope has finished. "
+        "Example:\n```python\ndef make_multiplier(n):\n    def multiply(x):\n        return x * n\n    return multiply\n\ndouble = make_multiplier(2)\nprint(double(5))  # 10\n```\n"
+        "Closures are useful for factories and callbacks where you need to carry state without a class.",
+    ),
+    (
+        "How does exception handling work in Python?",
+        "Use `try / except / else / finally`:\n"
+        "```python\ntry:\n    result = 10 / x\nexcept ZeroDivisionError:\n    print('Cannot divide by zero')\nexcept (TypeError, ValueError) as e:\n    print(f'Bad input: {e}')\nelse:\n    print(f'Result: {result}')\nfinally:\n    print('Always runs')\n```\n"
+        "Catch the most specific exceptions first. Avoid bare `except:` — it hides bugs.",
+    ),
+    (
+        "What are f-strings and how do they compare to `.format()`?",
+        "F-strings (Python 3.6+) embed expressions directly in string literals:\n"
+        "```python\nname = 'Alice'\nage = 30\nprint(f'{name} is {age} years old')\n```\n"
+        "They are faster and more readable than `.format()` or `%` formatting. "
+        "You can include any expression: `f'{2 + 2}'`, `f'{obj.method()}'`, `f'{value:.2f}` for floats.",
+    ),
+    (
+        "How do I read and write files in Python?",
+        "Reading:\n```python\nwith open('data.txt', 'r', encoding='utf-8') as f:\n    content = f.read()\n    lines = f.readlines()\n```\n"
+        "Writing:\n```python\nwith open('output.txt', 'w', encoding='utf-8') as f:\n    f.write('Hello\\n')\n```\n"
+        "Always use `with` so the file is closed automatically. Use `'a'` mode to append.",
+    ),
+    (
+        "What is `*args` and `**kwargs` in Python function definitions?",
+        "`*args` collects extra positional arguments into a tuple; `**kwargs` collects extra keyword "
+        "arguments into a dictionary:\n"
+        "```python\ndef log(*args, **kwargs):\n    print(args)\n    print(kwargs)\n\nlog(1, 2, name='Alice', level='info')\n```\n"
+        "Use them to write flexible functions. When calling, `*iterable` unpacks positional args.",
+    ),
+    (
+        "How do I use `map()` and `filter()` in Python?",
+        "`map(func, iterable)` applies `func` to every element; `filter(func, iterable)` keeps elements "
+        "where `func` returns truthy:\n"
+        "```python\nnumbers = [1, 2, 3, 4, 5]\nsquares = list(map(lambda x: x**2, numbers))\nevens   = list(filter(lambda x: x % 2 == 0, numbers))\n```\n"
+        "In most cases a list comprehension is more readable, but `map`/`filter` are handy with built-ins like `str`.",
+    ),
 ]
 
+
 def generate_coding_filler(target_tokens: int, seed: int) -> list[dict]:
-    """Produce an alternating user/assistant coding conversation ~target_tokens long."""
-    return build_filler_messages(target_tokens, seed, CODING_CORPUS)
+    if target_tokens == 0:
+        return []
+    rng = random.Random(seed)
+    shuffled = list(_PAIRS)
+    rng.shuffle(shuffled)
+    messages: list[dict] = []
+    total = 0
+    idx = 0
+    while total < target_tokens:
+        q, a = shuffled[idx % len(shuffled)]
+        idx += 1
+        messages.append({"role": "user", "content": q})
+        messages.append({"role": "assistant", "content": a})
+        total += len(_ENCODER.encode(q)) + len(_ENCODER.encode(a))
+    return messages

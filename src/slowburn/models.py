@@ -217,3 +217,42 @@ class GrokModel:
             _call,
             (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
         )
+
+
+# ---------------------------------------------------------------------------
+# Model catalog — used by the UI and CLI for dropdown selection
+# ---------------------------------------------------------------------------
+
+MODEL_CATALOG: dict[str, dict] = {
+    "claude-sonnet-4-6": {"display": "Claude Sonnet 4.6",  "provider": "anthropic", "cls": "ClaudeModel"},
+    "claude-sonnet-4-7": {"display": "Claude Sonnet 4.7",  "provider": "anthropic", "cls": "ClaudeModel"},
+    "claude-opus-4-7":   {"display": "Claude Opus 4.7",    "provider": "anthropic", "cls": "ClaudeModel"},
+    "claude-haiku-4-5":  {"display": "Claude Haiku 4.5",   "provider": "anthropic", "cls": "ClaudeModel"},
+    "gpt-4o":            {"display": "GPT-4o",             "provider": "openai",    "cls": "OpenAIModel"},
+    "gpt-4o-mini":       {"display": "GPT-4o Mini",        "provider": "openai",    "cls": "OpenAIModel"},
+    "gemini-2.5-pro":    {"display": "Gemini 2.5 Pro",     "provider": "google",    "cls": "GeminiModel"},
+    "gemini-2.0-flash":  {"display": "Gemini 2.0 Flash",   "provider": "google",    "cls": "GeminiModel"},
+    "grok-beta":         {"display": "Grok Beta",          "provider": "xai",       "cls": "GrokModel"},
+}
+
+JUDGE_MODEL_CATALOG: dict[str, str] = {
+    "claude-opus-4-7":   "Claude Opus 4.7 (recommended — best reasoning)",
+    "claude-sonnet-4-6": "Claude Sonnet 4.6",
+    "gpt-4o":            "GPT-4o",
+    "gemini-2.5-pro":    "Gemini 2.5 Pro",
+}
+
+_CLS_MAP = {
+    "ClaudeModel": ClaudeModel,
+    "OpenAIModel": OpenAIModel,
+    "GeminiModel": GeminiModel,
+    "WaferModel":  WaferModel,
+    "GrokModel":   GrokModel,
+}
+
+
+def get_model(model_name: str) -> Model:
+    entry = MODEL_CATALOG.get(model_name)
+    if entry is None:
+        raise ValueError(f"Unknown model: {model_name!r}. Available: {list(MODEL_CATALOG)}")
+    return _CLS_MAP[entry["cls"]](model_name)

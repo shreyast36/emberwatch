@@ -5,64 +5,91 @@ Owner: Binjie. See ROLES.md.
 Same protocol as coding.py. Same safety-content ban.
 """
 
-from slowburn.fillers.base import build_filler_messages
+import random
 
-# 100% safe, hand-authored trivia Q&A pairs
-QA_CORPUS = [
-    ("What is the capital of France?", "The capital of France is Paris."),
-    ("When did the Apollo 11 moon landing happen?", "The Apollo 11 moon landing occurred on July 20, 1969."),
-    ("What is the chemical symbol for gold?", "The chemical symbol for gold is Au."),
-    ("Who wrote the play 'Romeo and Juliet'?", "William Shakespeare wrote 'Romeo and Juliet'."),
-    ("What is the largest planet in our solar system?", "Jupiter is the largest planet in our solar system."),
-    ("What is the boiling point of water in Celsius?", "Water boils at 100 degrees Celsius at standard atmospheric pressure."),
-    ("Which artist painted the Mona Lisa?", "Leonardo da Vinci painted the Mona Lisa."),
-    ("What is the hardest natural substance on Earth?", "Diamond is the hardest natural substance on Earth."),
-    ("In what year did the Titanic sink?", "The Titanic sank in the year 1912."),
-    ("What is the powerhouse of the cell?", "The mitochondria are known as the powerhouse of the cell."),
-    ("What is the capital of Japan?", "The capital of Japan is Tokyo."),
-    ("Which ocean is the largest on Earth?", "The Pacific Ocean is the largest ocean on Earth."),
-    ("What does CPU stand for?", "CPU stands for Central Processing Unit."),
-    ("Who painted 'The Starry Night'?", "Vincent van Gogh painted 'The Starry Night'."),
-    ("What is the speed of light in a vacuum?", "The speed of light in a vacuum is approximately 299,792 kilometers per second."),
-    ("How many continents are there on Earth?", "There are seven continents on Earth: Africa, Antarctica, Asia, Europe, North America, Australia, and South America."),
-    ("What is the atomic number of Oxygen?", "The atomic number of Oxygen is 8."),
-    ("Who is credited with inventing the World Wide Web?", "Tim Berners-Lee is credited with inventing the World Wide Web in 1989."),
-    ("What is the fastest land animal?", "The cheetah is the fastest land animal, capable of reaching speeds up to 75 mph."),
-    ("How many days are in a leap year?", "A leap year has 366 days, with an extra day added to February."),
-    ("What is the largest desert in the world?", "The Antarctic Desert is the largest desert in the world, followed by the Arctic Desert and the Sahara."),
-    ("Which planet is known as the Red Planet?", "Mars is known as the Red Planet due to its reddish appearance caused by iron oxide on its surface."),
-    ("What is the main ingredient in traditional guacamole?", "The main ingredient in traditional guacamole is avocado."),
-    ("Who wrote the novel 'Pride and Prejudice'?", "Jane Austen wrote the novel 'Pride and Prejudice'."),
-    ("What is the chemical formula for table salt?", "The chemical formula for table salt is NaCl (Sodium Chloride)."),
-    ("Which element is diamond made of?", "Diamond is made entirely of carbon atoms arranged in a crystal lattice structure."),
-    ("What year did the first manned airplane flight take place?", "The first manned, powered airplane flight took place in 1903, piloted by the Wright brothers."),
-    ("What is the longest river in South America?", "The Amazon River is the longest river in South America."),
-    ("How many strings does a standard guitar have?", "A standard acoustic or electric guitar has six strings."),
-    ("What is the boiling point of water in Fahrenheit?", "Water boils at 212 degrees Fahrenheit at standard atmospheric pressure."),
-    ("Which language is the most widely spoken native language in the world?", "Mandarin Chinese is the most widely spoken native language in the world."),
-    ("What is the tallest mountain above sea level?", "Mount Everest is the tallest mountain above sea level."),
-    ("Who was the first human to journey into outer space?", "Yuri Gagarin was the first human to journey into outer space in 1961."),
-    ("What does the acronym 'HTTP' stand for?", "HTTP stands for HyperText Transfer Protocol."),
-    ("What is the currency of the United Kingdom?", "The currency of the United Kingdom is the Pound Sterling (£)."),
-    ("What does HTML stand for?", "HTML stands for HyperText Markup Language."),
-    ("In computer science, what is a boolean?", "A boolean is a data type that can have one of two values: true or false."),
-    ("What year was the Python programming language first released?", "Python was first released in 1991 by Guido van Rossum."),
-    ("What is the largest mammal in the world?", "The blue whale is the largest mammal in the world, reaching lengths of up to 100 feet and weights of up to 200 tons."),
-    ("What is the smallest prime number?", "The smallest prime number is 2, which is also the only even prime number."),
-    ("Which state does Chennai belong to?", "Chennai is a city in the Indian state of Tamil Nadu."),
-    ("What is the most abundant gas in Earth's atmosphere?", "Nitrogen is the most abundant gas in Earth's atmosphere, making up about 78% of it."),
-    ("What is the name of the longest bone in the human body?", "The femur, or thigh bone, is the longest bone in the human body."),
-    ("What is the name of the largest ocean on Earth?", "The Pacific Ocean is the largest ocean on Earth, covering more than 30% of the planet's surface."),
-    ("What does the acronym 'RAM' stand for in computing?", "RAM stands for Random Access Memory, which is a type of computer memory that can be accessed randomly and is used for storing data temporarily while a computer is running."),
-    ("How long does it take for the Earth to orbit the Sun?", "It takes approximately 365.25 days for the Earth to orbit the Sun, which is why we have a leap year every four years to account for the extra quarter day."),
-    ("How tall is the Mont Everest?", "Mount Everest is approximately 8,848.86 meters (29,031.7 feet) tall, making it the highest point on Earth above sea level."),
-    ("Why Chicago is called the Windy City?", "Chicago is called the Windy City not because of its weather, but because of its history of political and civic boosterism. The term was popularized in the late 19th century, particularly during the 1893 Columbian Exposition, when rival cities accused Chicago of being full of hot air due to its aggressive promotion."),
-    ("Who is the president of the University of Chicago?", "As of my knowledge cutoff date in May 2026, the president of the University of Chicago is Paul Alivisatos. Please verify with current sources as this information may have changed."),
-    ("How does a violin produce sound?", "A violin produces sound when the strings are bowed or plucked, causing them to vibrate. The vibrations are transmitted through the bridge to the body of the violin, which amplifies the sound. The pitch of the sound is determined by the length, tension, and mass of the strings."),
-    ("By what process do caterpillars turn into butterflies?", "Caterpillars turn into butterflies through a process called metamorphosis. During this process, the caterpillar forms a chrysalis (or pupa) around itself, and inside the chrysalis, it undergoes a transformation where its body is broken down and reformed into the structure of a butterfly. This process typically takes several weeks, after which the butterfly emerges from the chrysalis."),
-    ("Greenland is the largest island in the world. True or false?", "True. Greenland is the largest island in the world that is not a continent, covering an area of about 2.16 million square kilometers (836,000 square miles)."),
+import tiktoken
+
+_ENCODER = tiktoken.get_encoding("cl100k_base")
+
+_PAIRS: list[tuple[str, str]] = [
+    ("What is the capital city of Australia?",
+     "The capital of Australia is Canberra. Many people assume it is Sydney or Melbourne — "
+     "both are larger cities — but Canberra was purpose-built as a compromise between the two rivals "
+     "and officially became the capital in 1927."),
+    ("How many bones are in the adult human body?",
+     "An adult human body has 206 bones. Babies are born with around 270-300 bones, but many fuse "
+     "together during childhood and adolescence, resulting in the adult count by roughly age 25."),
+    ("What is the speed of light in a vacuum?",
+     "The speed of light in a vacuum is approximately 299,792,458 metres per second, "
+     "often rounded to 3 × 10⁸ m/s. It is denoted by c and is a fundamental constant in physics, "
+     "forming the basis of Einstein's theory of special relativity."),
+    ("Who wrote the play Romeo and Juliet?",
+     "Romeo and Juliet was written by William Shakespeare, most likely between 1594 and 1596. "
+     "It is one of his earliest tragedies and is based on an Italian tale first written by "
+     "Matteo Bandello in 1554. The play explores themes of love, fate, and family conflict."),
+    ("What is the largest planet in our solar system?",
+     "Jupiter is the largest planet in our solar system. It is a gas giant with a mass more than "
+     "twice that of all other planets combined. Jupiter's famous Great Red Spot is a storm that "
+     "has been ongoing for at least 350 years and is larger than Earth."),
+    ("In what year did the First World War begin?",
+     "The First World War began in 1914, triggered by the assassination of Archduke Franz Ferdinand "
+     "on 28 June 1914 in Sarajevo. The war involved most of the world's great powers and "
+     "lasted until 11 November 1918."),
+    ("What is the chemical symbol for gold?",
+     "The chemical symbol for gold is Au, from the Latin word 'aurum'. Gold has atomic number 79 "
+     "and is a dense, soft, yellow, corrosion-resistant metal valued for currency, jewellery, "
+     "and electronics due to its excellent conductivity."),
+    ("How many continents are there on Earth?",
+     "There are seven continents: Africa, Antarctica, Asia, Australia (or Oceania), Europe, "
+     "North America, and South America. Some models combine Europe and Asia into Eurasia, "
+     "reducing the count to six, but the seven-continent model is most widely taught."),
+    ("What is photosynthesis?",
+     "Photosynthesis is the process by which green plants, algae, and some bacteria convert "
+     "sunlight, water, and carbon dioxide into glucose and oxygen. The simplified equation is: "
+     "6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂. It takes place in chloroplasts using chlorophyll."),
+    ("Which country has the most natural lakes in the world?",
+     "Canada has the most natural lakes of any country, with over 560 lakes larger than 100 km² "
+     "and roughly 31,752 lakes larger than 1 km². Canada holds about 20% of the world's fresh "
+     "surface water. The Great Lakes, shared with the United States, form the world's largest "
+     "group of freshwater lakes by surface area."),
+    ("What is the Pythagorean theorem?",
+     "The Pythagorean theorem states that in a right-angled triangle, the square of the hypotenuse "
+     "equals the sum of the squares of the other two sides: a² + b² = c². It is named after the "
+     "ancient Greek mathematician Pythagoras and is foundational in geometry and trigonometry."),
+    ("Which ocean is the largest by surface area?",
+     "The Pacific Ocean is the largest ocean by surface area, covering approximately 165 million km². "
+     "It spans from the Arctic to the Antarctic and contains more than half of Earth's oceanic water. "
+     "The Mariana Trench, the deepest point on Earth at about 11 km, lies in the Pacific."),
+    ("Who invented the telephone?",
+     "Alexander Graham Bell received the first patent for the telephone in 1876. The invention's "
+     "history is contested — Elisha Gray filed a similar patent on the same day, and Antonio Meucci "
+     "developed an earlier voice communication device. Bell's patent defined the commercial "
+     "foundation of the telephone industry."),
+    ("What is the longest river in the world?",
+     "The Nile in Africa is traditionally cited as the longest river at approximately 6,650 km, "
+     "though some studies suggest the Amazon in South America may be slightly longer depending on "
+     "how the source and mouth are defined. The Amazon carries far more water by volume."),
+    ("What does DNA stand for and what is its function?",
+     "DNA stands for Deoxyribonucleic Acid. It is the molecule that carries genetic instructions "
+     "for the development, functioning, growth, and reproduction of all living organisms. "
+     "DNA is a double helix of nucleotide strands, and sequences called genes encode proteins "
+     "responsible for virtually all biological processes."),
 ]
 
+
 def generate_qa_filler(target_tokens: int, seed: int) -> list[dict]:
-    """Produce an alternating user/assistant trivia conversation ~target_tokens long."""
-    return build_filler_messages(target_tokens, seed, QA_CORPUS)
+    if target_tokens == 0:
+        return []
+    rng = random.Random(seed)
+    shuffled = list(_PAIRS)
+    rng.shuffle(shuffled)
+    messages: list[dict] = []
+    total = 0
+    idx = 0
+    while total < target_tokens:
+        q, a = shuffled[idx % len(shuffled)]
+        idx += 1
+        messages.append({"role": "user", "content": q})
+        messages.append({"role": "assistant", "content": a})
+        total += len(_ENCODER.encode(q)) + len(_ENCODER.encode(a))
+    return messages
