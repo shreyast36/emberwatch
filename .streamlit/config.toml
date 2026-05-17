@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#ff5722"
+backgroundColor = "#0a0606"
+secondaryBackgroundColor = "#1a0d0a"
+textColor = "#f0e8d8"
+font = "monospace"
+
+[server]
+headless = true
+runOnSave = false
+
+[browser]
+gatherUsageStats = false

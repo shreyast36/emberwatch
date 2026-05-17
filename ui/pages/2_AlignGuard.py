@@ -1,21 +1,34 @@
-"""Streamlit frontend for AlignGuard — Multi-Agent Alignment Monitoring."""
+"""Streamlit frontend for AlignGuard — Emberwatch Module 02."""
 
 import io
 import os
+import sys
 import time
+from pathlib import Path
 
 import pandas as pd
 import requests
 import streamlit as st
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from _theme import inject_theme, status_bar, breadcrumb, footer  # noqa: E402
+
 API_URL = os.environ.get("SLOWBURN_API_URL", "http://localhost:8000")
 
 st.set_page_config(
-    page_title="AlignGuard — Alignment Monitoring",
+    page_title="Emberwatch · AlignGuard",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+inject_theme()
+try:
+    _api_ok_top = requests.get(f"{API_URL}/health", timeout=2).status_code == 200
+except Exception:
+    _api_ok_top = False
+status_bar(_api_ok_top)
+breadcrumb("AlignGuard")
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 

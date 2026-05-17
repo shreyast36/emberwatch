@@ -1,90 +1,74 @@
-"""Landing page — routes user to SlowBurn or AlignGuard."""
+"""Emberwatch — landing. Routes to Slowburn or AlignGuard."""
 
 import os
+import sys
+from pathlib import Path
+
 import requests
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).parent))
+from _theme import inject_theme, status_bar, footer  # noqa: E402
 
 API_URL = os.environ.get("SLOWBURN_API_URL", "http://localhost:8000")
 
 st.set_page_config(
-    page_title="LLM Safety Toolkit",
-    page_icon="🛡️",
-    layout="centered",
+    page_title="Emberwatch",
+    page_icon="🔥",
+    layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# ── API health check (small badge in corner) ───────────────────────────────────
+inject_theme()
+
 try:
-    r = requests.get(f"{API_URL}/health", timeout=2)
-    _api_ok = r.status_code == 200
+    _api_ok = requests.get(f"{API_URL}/health", timeout=2).status_code == 200
 except Exception:
     _api_ok = False
 
-with st.sidebar:
-    st.caption(f"API: {'🟢 online' if _api_ok else '🔴 offline'}")
-    st.caption(f"Endpoint: {API_URL}")
+status_bar(_api_ok)
 
 # ── Hero ───────────────────────────────────────────────────────────────────────
-
+st.markdown('<div style="height: 4rem;"></div>', unsafe_allow_html=True)
+st.markdown('<h1 class="ember-title">EMBERWATCH</h1>', unsafe_allow_html=True)
+st.markdown('<div class="ember-tagline">Observe · Anticipate · Prevent</div>', unsafe_allow_html=True)
+st.markdown('<hr class="ember-hr">', unsafe_allow_html=True)
 st.markdown(
-    "<h1 style='text-align:center; margin-bottom:0'>🛡️ LLM Safety Toolkit</h1>",
+    '<div style="display:flex; justify-content:center; width:100%;">'
+    '<p class="ember-lede">'
+    'AI safety, <span class="ember-lede-em">beyond the benchmark.</span>'
+    '</p>'
+    '</div>',
     unsafe_allow_html=True,
 )
-st.markdown(
-    "<p style='text-align:center; color:gray; margin-top:4px'>"
-    "Choose a tool to get started</p>",
-    unsafe_allow_html=True,
-)
-st.divider()
 
-# ── Tool cards ─────────────────────────────────────────────────────────────────
-
+# ── Modules ────────────────────────────────────────────────────────────────────
 col_sb, col_ag = st.columns(2, gap="large")
 
 with col_sb:
-    st.markdown("### 🔥 SlowBurn")
     st.markdown(
-        "**Context Degradation Testing**\n\n"
-        "Stress-test an LLM's safety properties as conversation context grows. "
-        "Run baseline validation, a full model × probe × depth matrix, and generate "
-        "degradation curve charts to spot where safety breaks down."
+        """
+        <div class="ember-card">
+            <div class="ember-firetext">SLOWBURN</div>
+            <div class="ember-card-sub">Context Degradation Testing</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown("")
-    st.markdown("**Features**")
-    st.markdown(
-        "- Multi-model support (Claude, GPT, Gemini, Grok)\n"
-        "- Configurable filler corpus (trivia / coding Q&A)\n"
-        "- Automated baseline consistency checking\n"
-        "- Per-probe degradation curve plots\n"
-        "- Resumable matrix runs via JSONL"
-    )
-    st.markdown("")
-    if st.button("Launch SlowBurn →", type="primary", use_container_width=True, key="go_sb"):
+    if st.button("ENTER  SLOWBURN  →", type="primary", use_container_width=True, key="go_sb"):
         st.switch_page("pages/1_Slowburn.py")
 
 with col_ag:
-    st.markdown("### 🛡️ AlignGuard")
     st.markdown(
-        "**Multi-Agent Alignment Monitoring**\n\n"
-        "Monitor a 4-agent customer-support pipeline for alignment failures. "
-        "Detects spec gaming, deceptive reasoning, canary probe failures, and "
-        "score drift — then generates per-session introspection reports."
+        """
+        <div class="ember-card">
+            <div class="ember-firetext">ALIGNGUARD</div>
+            <div class="ember-card-sub">Multi-Agent Alignment Monitoring</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown("")
-    st.markdown("**Features**")
-    st.markdown(
-        "- Gaming Detector, Reasoning Auditor, Canary Prober, Drift Tracker\n"
-        "- LLM-powered prompt weakness analysis\n"
-        "- Per-session markdown introspection reports\n"
-        "- Multi-session alignment trend charts\n"
-        "- Risk-level alerts (LOW → CRITICAL)"
-    )
-    st.markdown("")
-    if st.button("Launch AlignGuard →", type="primary", use_container_width=True, key="go_ag"):
+    if st.button("ENTER  ALIGNGUARD  →", type="primary", use_container_width=True, key="go_ag"):
         st.switch_page("pages/2_AlignGuard.py")
 
-st.divider()
-st.caption(
-    "SlowBurn measures LLM safety degradation over growing context. "
-    "AlignGuard monitors agentic pipelines for alignment failures in real time."
-)
+footer()
