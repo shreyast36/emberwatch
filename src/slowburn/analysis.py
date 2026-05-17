@@ -5,6 +5,10 @@ Owner: Shreyas. See ROLES.md.
 - Read results JSONL
 - Aggregate by (model, probe, depth) -> pass-rate (with sample size for error bars)
 - Plot one matplotlib figure per probe (one line per model, pass-rate vs. depth)
+- Plot a comparative half-life figure per model (one line per probe, normalized
+  to depth-0 = 1.0) — this is the project's headline finding: the relative
+  fragility ordering across safety properties under pure depth stress. See
+  README and docs/RELATED_WORK.md for the positioning vs. prior work.
 - Save figures as PNG into results/
 - Emit a model x probe x depth pivot of pass-rates as CSV
 """
@@ -84,6 +88,45 @@ def _plot_probe(probe_name: str, probe_df: pd.DataFrame, out_path: Path) -> None
     plt.close(fig)
 
 
+def _plot_half_lives(stats: pd.DataFrame, out_dir: Path) -> list[Path]:
+    """One figure per model: each probe's pass-rate vs. depth, normalized to
+    depth-0 = 1.0. Surfaces the *relative fragility ordering* — the headline
+    finding the matrix is designed to produce."""
+    written: list[Path] = []
+    for model_name, model_df in stats.groupby("model_name", sort=True):
+        fig, ax = plt.subplots(figsize=(9, 5.5))
+        for probe_name, sub in model_df.groupby("probe_name", sort=True):
+            sub = sub.sort_values("depth")
+            depth_zero = sub[sub["depth"] == 0]
+            if depth_zero.empty or math.isnan(depth_zero["pass_rate"].iloc[0]):
+                # No depth-0 anchor — skip; plot would be misleading.
+                continue
+            anchor = depth_zero["pass_rate"].iloc[0]
+            if anchor <= 0:
+                # Cannot normalize against a zero baseline; skip.
+                continue
+            normalized = sub["pass_rate"] / anchor
+            ax.plot(
+                sub["depth"],
+                normalized,
+                marker="o",
+                label=probe_name,
+            )
+        ax.set_xlabel("Prior-context depth (tokens)")
+        ax.set_ylabel("Pass rate / depth-0 pass rate")
+        ax.set_title(f"Safety half-lives — {model_name}")
+        ax.axhline(1.0, color="grey", linestyle=":", alpha=0.5, linewidth=1)
+        ax.set_ylim(-0.05, 1.15)
+        ax.grid(True, linestyle="--", alpha=0.4)
+        ax.legend(loc="best", title="probe")
+        fig.tight_layout()
+        out_path = out_dir / f"half_lives_{model_name}.png"
+        fig.savefig(out_path, dpi=150)
+        plt.close(fig)
+        written.append(out_path)
+    return written
+
+
 def _write_summary_csv(stats: pd.DataFrame, out_path: Path) -> None:
     pivot = stats.pivot_table(
         index=["model_name", "probe_name"],
@@ -109,6 +152,9 @@ def aggregate(results_path: Path) -> None:
         png_path = out_dir / f"{probe_name}.png"
         _plot_probe(probe_name, probe_df, png_path)
         console.log(f"[green]wrote {png_path}[/green]")
+
+    for half_life_path in _plot_half_lives(stats, out_dir):
+        console.log(f"[green]wrote {half_life_path}[/green]")
 
     summary_path = out_dir / "summary.csv"
     _write_summary_csv(stats, summary_path)

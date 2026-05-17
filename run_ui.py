@@ -44,6 +44,14 @@ def main() -> None:
             "--host", "0.0.0.0",
             "--port", "8000",
             "--reload",
+            # Scope autoreload to source dirs uvicorn actually imports. Default --reload
+            # watches cwd, which means every write to results/matrix.jsonl mid-run
+            # triggers a reload and kills the in-flight task. ui/ is run by Streamlit,
+            # not imported by uvicorn — don't watch it here.
+            "--reload-dir", str(ROOT / "api"),
+            "--reload-dir", str(ROOT / "src"),
+            "--reload-exclude", "*.pyc",
+            "--reload-exclude", "__pycache__/*",
         ],
         cwd=ROOT,
     )

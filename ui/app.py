@@ -28,7 +28,7 @@ with st.sidebar:
 
     _api_ok = False
     try:
-        r = requests.get(f"{api_url}/health", timeout=2)
+        r = requests.get(f"{api_url}/health", timeout=10)
         if r.status_code == 200:
             st.success("API connected ✓")
             _api_ok = True
@@ -41,15 +41,15 @@ with st.sidebar:
     AVAILABLE_PROBES: list[dict] = []
     if _api_ok:
         try:
-            AVAILABLE_MODELS = requests.get(f"{api_url}/models", timeout=3).json()
-            AVAILABLE_PROBES = requests.get(f"{api_url}/probes", timeout=3).json()
+            AVAILABLE_MODELS = requests.get(f"{api_url}/models", timeout=15).json()
+            AVAILABLE_PROBES = requests.get(f"{api_url}/probes", timeout=15).json()
         except Exception:
             AVAILABLE_MODELS = ["claude", "openai"]
 
     st.divider()
     st.markdown(
         "**Model defaults**\n"
-        "- `claude` -> claude-opus-4-7\n"
+        "- `claude` -> claude-sonnet-4-6\n"
         "- `openai` -> gpt-5\n"
         "\n_Judge: grok-4.3 (reserved off-panel)_"
     )
@@ -61,11 +61,11 @@ with st.sidebar:
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _post(path: str, payload: dict | None = None):
-    return requests.post(f"{api_url}{path}", json=payload or {}, timeout=15)
+    return requests.post(f"{api_url}{path}", json=payload or {}, timeout=30)
 
 
 def _get(path: str, **params):
-    return requests.get(f"{api_url}{path}", params=params or None, timeout=10)
+    return requests.get(f"{api_url}{path}", params=params or None, timeout=30)
 
 
 def _verdict_badge(v: str) -> str:
@@ -130,7 +130,15 @@ with tab_baseline:
     if "b_task" in st.session_state and "b_done" not in st.session_state:
         tid = st.session_state["b_task"]
         try:
-            status = _get(f"/task/{tid}").json()
+            task_resp = _get(f"/task/{tid}")
+            if task_resp.status_code == 404:
+                st.warning(
+                    "Previous baseline task is no longer tracked by the API "
+                    "(server restarted). Click Run Baseline to start a fresh run."
+                )
+                st.session_state.pop("b_task", None)
+                st.stop()
+            status = task_resp.json()
         except Exception as e:
             st.error(f"Could not reach API: {e}")
             status = {"status": "error", "error": str(e), "log": []}
@@ -138,24 +146,27 @@ with tab_baseline:
         status_box = st.empty()
         prog = st.progress(0.0)
 
-        if status["status"] == "running":
+        status_val = status.get("status", "unknown")
+        log_lines = status.get("log") or []
+
+        if status_val == "running":
             prog.progress(0.5)
             status_box.info("⏳ Running baseline… auto-refreshing every 3 s.")
-            if status["log"]:
+            if log_lines:
                 with st.expander("Log", expanded=False):
-                    st.text("\n".join(status["log"]))
+                    st.text("\n".join(log_lines))
             time.sleep(3)
             st.rerun()
 
-        elif status["status"] == "completed":
+        elif status_val == "completed":
             prog.progress(1.0)
             result = _get(f"/task/{tid}/result").json()
             st.session_state["b_done"] = result
             st.rerun()
 
-        elif status["status"] == "error":
+        elif status_val == "error":
             prog.empty()
-            st.error(f"Task failed: {status['error']}")
+            st.error(f"Task failed: {status.get('error', 'unknown error')}")
 
     # Show result
     if "b_done" in st.session_state:
@@ -280,7 +291,17 @@ with tab_matrix:
     if "mx_task" in st.session_state and "mx_done" not in st.session_state:
         tid = st.session_state["mx_task"]
         try:
-            status = _get(f"/task/{tid}").json()
+            task_resp = _get(f"/task/{tid}")
+            if task_resp.status_code == 404:
+                # API was restarted since task launch; in-memory _tasks dict is empty.
+                # Forget the dead task ID so we don't re-poll it forever.
+                st.warning(
+                    "Previous matrix task is no longer tracked by the API "
+                    "(server restarted). Click Run Matrix to start a fresh run."
+                )
+                st.session_state.pop("mx_task", None)
+                st.stop()
+            status = task_resp.json()
             count_data = _get("/matrix/count").json()
         except Exception as e:
             st.error(f"Could not reach API: {e}")
@@ -293,19 +314,21 @@ with tab_matrix:
 
         st.progress(frac, text=f"{rows_done} / {total} cells  ({frac:.0%})")
 
-        if status["log"]:
+        log_lines = status.get("log") or []
+        if log_lines:
             with st.expander("Log", expanded=True):
-                st.code("\n".join(status["log"]), language=None)
+                st.code("\n".join(log_lines), language=None)
 
-        if status["status"] == "running":
+        status_val = status.get("status", "unknown")
+        if status_val == "running":
             st.info("⏳ Running… auto-refreshing every 4 s.")
             time.sleep(4)
             st.rerun()
-        elif status["status"] == "completed":
+        elif status_val == "completed":
             st.session_state["mx_done"] = True
             st.rerun()
-        elif status["status"] == "error":
-            st.error(f"Task failed: {status['error']}")
+        elif status_val == "error":
+            st.error(f"Task failed: {status.get('error', 'unknown error')}")
 
     if "mx_done" in st.session_state:
         count_data = _get("/matrix/count").json()

@@ -24,7 +24,11 @@ console = Console()
 
 DEFAULT_PROVIDER_CONCURRENCY = 5
 MAX_CELL_ATTEMPTS = 3
-MAX_RESPONSE_TOKENS = 1024
+# 4096 leaves room for reasoning models (gpt-5 spends output budget on internal
+# reasoning tokens before emitting content). At 1024, gpt-5 routinely produced
+# empty content, which falsely scored as 'pass' via the empty-output rubric path
+# and hid any depth-induced degradation. 4096 gives ~2-3k reasoning + ~1-2k content.
+MAX_RESPONSE_TOKENS = 4096
 VALUES_PROBE_NAME = "values"
 
 # (provider, probe.name) pairs we skip entirely. Empty now that the refusal probe was

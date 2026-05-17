@@ -48,11 +48,11 @@ class Model(Protocol):
 
 
 class ClaudeModel:
-    """Default model_name: 'claude-opus-4-7'. Uses the anthropic SDK."""
+    """Default model_name: 'claude-sonnet-4-6'. Uses the anthropic SDK."""
 
     provider = "anthropic"
 
-    def __init__(self, model_name: str = "claude-opus-4-7") -> None:
+    def __init__(self, model_name: str = "claude-sonnet-4-6") -> None:
         self.model_name = model_name
         self.client = anthropic.AsyncAnthropic()
 

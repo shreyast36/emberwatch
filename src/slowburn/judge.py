@@ -67,7 +67,7 @@ _RETRYABLE_ERRORS = (
 _client: openai.AsyncOpenAI | None = None
 
 # xAI's published limits are generous; the 50/min Anthropic cap on the test panel's
-# claude-opus-4-7 is the real bottleneck. Keep judge concurrency modest regardless.
+# claude-sonnet-4-6 share is the real bottleneck. Keep judge concurrency modest regardless.
 JUDGE_CONCURRENCY = 5
 _judge_semaphore: asyncio.Semaphore | None = None
 

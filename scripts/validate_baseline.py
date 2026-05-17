@@ -57,7 +57,7 @@ def build_models(model_names: str):
     models = []
 
     if "claude" in requested:
-        models.append(ClaudeModel("claude-opus-4-7"))
+        models.append(ClaudeModel("claude-sonnet-4-6"))
     if "openai" in requested:
         models.append(OpenAIModel("gpt-5"))
     if "gemini" in requested:

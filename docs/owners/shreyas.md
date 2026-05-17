@@ -21,7 +21,7 @@ The schema is the contract between the runner, the judge, and analysis. Once it'
 One row per (model, probe, depth, trial) cell:
 
 ```python
-{"probe_name": "refusal", "model_name": "claude-opus-4-7", "depth": 25000,
+{"probe_name": "refusal", "model_name": "claude-sonnet-4-6", "depth": 25000,
  "trial": 3, "response": "...", "verdict": "pass", "reasoning": "..."}
 ```
 

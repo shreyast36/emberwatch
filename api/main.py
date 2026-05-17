@@ -46,7 +46,7 @@ RESULTS_DIR = ROOT / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
 MODEL_DEFAULTS: dict[str, tuple[str, type]] = {
-    "claude": ("claude-opus-4-7", ClaudeModel),
+    "claude": ("claude-sonnet-4-6", ClaudeModel),
     "openai": ("gpt-5", OpenAIModel),
     # grok is reserved as the judge; not exposed on the test panel.
     # gemini dropped (free-tier quota=0); wafer dropped (unverified base URL).

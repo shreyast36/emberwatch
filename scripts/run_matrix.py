@@ -3,7 +3,7 @@
 Owner: Shreyas. See ROLES.md.
 
 Default config (2 x 5 x 5 x 10 = 500 runs — budget accordingly):
-  models  = ClaudeModel("claude-opus-4-7"), OpenAIModel("gpt-5")
+  models  = ClaudeModel("claude-sonnet-4-6"), OpenAIModel("gpt-5")
   probes  = all 5
   depths  = [0, 5000, 25000, 75000, 150000]
   trials  = 10
@@ -40,7 +40,7 @@ def parse_args():
 async def main(args) -> None:
     # Instantiate models inside the coroutine to avoid async loop conflicts during import
     models = [
-        ClaudeModel("claude-opus-4-7"),
+        ClaudeModel("claude-sonnet-4-6"),
         OpenAIModel("gpt-5"),
     ]
     
